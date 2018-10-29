@@ -17,12 +17,14 @@ func main() {
 	// Make sure no mandatory environment variables are missing.
 	for _, envVar := range []string{
 		"ACCESS_TOKEN",
+		"GITHUB_ORG",
 	} {
 		if os.Getenv(envVar) == "" {
 			panic(fmt.Sprintf("Missing environment variable! %s", envVar))
 		}
 	}
 	token := os.Getenv("ACCESS_TOKEN")
+	organizationName := os.Getenv("GITHUB_ORG")
 
 	ctx := context.Background()
 	ts := oauth2.StaticTokenSource(
@@ -38,7 +40,7 @@ func main() {
 	var allRepos []*github.Repository
 
 	for {
-		repos, resp, err := client.Repositories.ListByOrg(ctx, "randomtestorg", opt)
+		repos, resp, err := client.Repositories.ListByOrg(ctx, organizationName, opt)
 		if err != nil {
 			panic(err)
 		}
