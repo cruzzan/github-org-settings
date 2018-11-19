@@ -57,23 +57,25 @@ func main() {
 		editRepository(repository, client, ctx)
 	}
 }
-func Bool(v bool) *bool { return &v }
+func Bool(v bool) *bool       { return &v }
 func String(v string) *string { return &v }
 
 func editRepository(repository *github.Repository, client *github.Client, ctx context.Context) {
 
 	input := &github.Repository{
-		HasIssues: Bool(false),
-		DefaultBranch: String(DEFAULT_BRANCH),
-		MasterBranch: String(DEFAULT_BRANCH),
+		HasIssues:        Bool(false),
+		DefaultBranch:    String(DEFAULT_BRANCH),
+		MasterBranch:     String(DEFAULT_BRANCH),
 		AllowRebaseMerge: Bool(false),
 		AllowSquashMerge: Bool(false),
 		AllowMergeCommit: Bool(true),
-
 	}
 	fmt.Printf("Updating repository settings for %s \n", repository.GetName())
 
-	client.Repositories.Edit(ctx, repository.GetOwner().GetLogin(), repository.GetName(), input)
+	_, _, err := client.Repositories.Edit(ctx, repository.GetOwner().GetLogin(), repository.GetName(), input)
+	if err != nil {
+		fmt.Errorf("Failed to update repository", err)
+	}
 }
 
 func updateBranchProtection(repo *github.Repository, client *github.Client, ctx context.Context) {
@@ -105,8 +107,7 @@ func updateBranchProtection(repo *github.Repository, client *github.Client, ctx 
 	}
 
 	_, _, e := client.Repositories.UpdateBranchProtection(ctx, repo.GetOwner().GetLogin(), repo.GetName(), DEFAULT_BRANCH, pr)
-
 	if e != nil {
-		fmt.Errorf("Failed to update", e)
+		fmt.Errorf("Failed to update branch protection", e)
 	}
 }
