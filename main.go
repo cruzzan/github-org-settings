@@ -54,7 +54,26 @@ func main() {
 	for i := 0; i < len(allRepos); i++ {
 		repository := allRepos[i]
 		updateBranchProtection(repository, client, ctx)
+		editRepository(repository, client, ctx)
 	}
+}
+func Bool(v bool) *bool { return &v }
+func String(v string) *string { return &v }
+
+func editRepository(repository *github.Repository, client *github.Client, ctx context.Context) {
+
+	input := &github.Repository{
+		HasIssues: Bool(false),
+		DefaultBranch: String(DEFAULT_BRANCH),
+		MasterBranch: String(DEFAULT_BRANCH),
+		AllowRebaseMerge: Bool(false),
+		AllowSquashMerge: Bool(false),
+		AllowMergeCommit: Bool(true),
+
+	}
+	fmt.Printf("Updating repository settings for %s \n", repository.GetName())
+
+	client.Repositories.Edit(ctx, repository.GetOwner().GetLogin(), repository.GetName(), input)
 }
 
 func updateBranchProtection(repo *github.Repository, client *github.Client, ctx context.Context) {
@@ -71,7 +90,7 @@ func updateBranchProtection(repo *github.Repository, client *github.Client, ctx 
 	}
 	pullRequestEnforcemnet := &github.PullRequestReviewsEnforcementRequest{
 		DismissalRestrictionsRequest: restrictionsRequest,
-		DismissStaleReviews:          false,
+		DismissStaleReviews:          true,
 		RequiredApprovingReviewCount: 2,
 	}
 	userRestrictions := &github.BranchRestrictionsRequest{
