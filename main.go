@@ -92,7 +92,7 @@ func updateBranchProtection(repo *github.Repository, client *github.Client, ctx 
 	}
 	pullRequestEnforcemnet := &github.PullRequestReviewsEnforcementRequest{
 		DismissalRestrictionsRequest: restrictionsRequest,
-		DismissStaleReviews:          true,
+		DismissStaleReviews:          false,
 		RequiredApprovingReviewCount: 2,
 	}
 	userRestrictions := &github.BranchRestrictionsRequest{
@@ -111,10 +111,10 @@ func updateBranchProtection(repo *github.Repository, client *github.Client, ctx 
 		fmt.Errorf("Failed to update branch protection", e)
 	}
 	sreq := &github.RequiredStatusChecksRequest{
-		Strict: Bool(true),
+		Strict:   Bool(true),
 		Contexts: slice,
 	}
-	_, _, error := client.Repositories.UpdateRequiredStatusChecks(ctx,  repo.GetOwner().GetLogin(), repo.GetName(), DEFAULT_BRANCH, sreq)
+	_, _, error := client.Repositories.UpdateRequiredStatusChecks(ctx, repo.GetOwner().GetLogin(), repo.GetName(), DEFAULT_BRANCH, sreq)
 	if error != nil {
 		fmt.Errorf("require status check", e)
 	}
