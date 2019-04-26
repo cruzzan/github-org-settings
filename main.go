@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/google/go-github/v21/github"
+	"github.com/google/go-github/v25/github"
 	"golang.org/x/oauth2"
 	"os"
 )
@@ -51,6 +51,8 @@ func main() {
 		opt.Page = resp.NextPage
 	}
 
+	fmt.Printf("Found %d repos", len(allRepos))
+
 	for i := 0; i < len(allRepos); i++ {
 		repository := allRepos[i]
 		updateBranchProtection(repository, client, ctx)
@@ -74,7 +76,7 @@ func editRepository(repository *github.Repository, client *github.Client, ctx co
 
 	_, _, err := client.Repositories.Edit(ctx, repository.GetOwner().GetLogin(), repository.GetName(), input)
 	if err != nil {
-		fmt.Errorf("Failed to update repository", err)
+		fmt.Printf("Failed to update repository", err)
 	}
 }
 
@@ -86,12 +88,12 @@ func updateBranchProtection(repo *github.Repository, client *github.Client, ctx 
 		Strict:   true,
 		Contexts: slice, // empty list
 	}
-	restrictionsRequest := &github.DismissalRestrictionsRequest{
-		Users: nil, // empty list
-		Teams: nil, // empty list
-	}
+	//restrictionsRequest := &github.DismissalRestrictionsRequest{
+	//	Users: nil, // empty list
+	//	Teams: nil, // empty list
+	//}
 	pullRequestEnforcemnet := &github.PullRequestReviewsEnforcementRequest{
-		DismissalRestrictionsRequest: restrictionsRequest,
+		//DismissalRestrictionsRequest: restrictionsRequest,
 		DismissStaleReviews:          false,
 		RequiredApprovingReviewCount: 2,
 	}
@@ -102,25 +104,25 @@ func updateBranchProtection(repo *github.Repository, client *github.Client, ctx 
 	pr := &github.ProtectionRequest{
 		RequiredStatusChecks:       statusCheck,
 		RequiredPullRequestReviews: pullRequestEnforcemnet,
-		EnforceAdmins:              true,
+		EnforceAdmins:              false,
 		Restrictions:               userRestrictions,
 	}
 
 	_, _, e := client.Repositories.UpdateBranchProtection(ctx, repo.GetOwner().GetLogin(), repo.GetName(), DEFAULT_BRANCH, pr)
 	if e != nil {
-		fmt.Errorf("Failed to update branch protection", e)
+		fmt.Printf("Failed to update branch protection", e)
 	}
 	sreq := &github.RequiredStatusChecksRequest{
 		Strict:   Bool(true),
 		Contexts: slice,
 	}
-	_, _, error := client.Repositories.UpdateRequiredStatusChecks(ctx, repo.GetOwner().GetLogin(), repo.GetName(), DEFAULT_BRANCH, sreq)
-	if error != nil {
-		fmt.Errorf("require status check", e)
+	_, _, err := client.Repositories.UpdateRequiredStatusChecks(ctx, repo.GetOwner().GetLogin(), repo.GetName(), DEFAULT_BRANCH, sreq)
+	if err != nil {
+		fmt.Printf("require status check", err)
 	}
 
 	_, _, errrr := client.Repositories.RequireSignaturesOnProtectedBranch(ctx, repo.GetOwner().GetLogin(), repo.GetName(), DEFAULT_BRANCH)
 	if errrr != nil {
-		fmt.Errorf("Failed to update branch protection", errrr)
+		fmt.Printf("Failed to update branch protection", errrr)
 	}
 }
